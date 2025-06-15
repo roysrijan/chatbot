@@ -20,7 +20,7 @@ os.environ['LANGSMITH_API_KEY'] = os.getenv('LANGSMITH_API_KEY')
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 
 # --- RAG Setup (Initialize outside the request handler) ---
-@app.before_first_request
+@app.before_request
 def setup_rag():
     global retriever, llm, prompt # Make these global so they can be accessed in the request handler
 
