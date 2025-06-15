@@ -84,8 +84,8 @@ def handle_query():
     try:
         result = chain.invoke({"query": query})
         formatted_sources = [
-            {"page_content": doc.page_content, "metadata": doc.metadata}
-            for doc in result.get('source_documents', [])
+            {"page_content": doc.page_content[:150], "metadata": doc.metadata}
+            for i, doc in enumerate(result.get('source_documents'), 1)
         ]
         return jsonify({
             "answer": result.get('result'),
