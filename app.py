@@ -8,6 +8,10 @@ from langchain import hub
 from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
+from flask_cors import CORS
+
+# --- Enable CORS --
+CORS(app)
 
 # --- Flask App ---
 app = Flask(__name__)
