@@ -10,11 +10,11 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from flask_cors import CORS
 
-# --- Enable CORS --
-CORS(app)
-
 # --- Flask App ---
 app = Flask(__name__)
+
+# --- Enable CORS --
+CORS(app)
 
 # --- Environment Variables ---
 # Ensure these are set in your deployment environment
