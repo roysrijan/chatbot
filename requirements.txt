@@ -1,5 +1,6 @@
 Flask==2.3.3
 flask_cors
+flask_socketio
 langchain_community
 langchain-openai
 tiktoken
