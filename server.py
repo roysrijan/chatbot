@@ -31,8 +31,8 @@ def handle_join(data):
 @socketio.on('executive_online')
 def handle_executive_online(data):
     global executive_counter
-    executive_counter += 1
-    executive_id = f"executive_{executive_counter}"
+    # executive_counter += 1
+    executive_id = data.get('user_id') #f"executive_{executive_counter}"
     executives.append(executive_id)
     join_room('executives')
     emit('executive_ready', {'msg': f'Executive {executive_id} is online', 'executive_id': executive_id}, room='executives')
