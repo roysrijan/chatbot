@@ -33,20 +33,27 @@ def setup_rag():
         print("Warning: OPENAI_API_KEY not set. Embeddings may fail.")
     embd = OpenAIEmbeddings()
 
+    # Docs to index
+    urls = [
+        "1930.pdf",
+        "1946.pdf",
+        "1949.pdf"
+    ]
+
     # Load document
     # Assuming 'myIRC.pdf' is available in the same directory as app.py
-    if not os.path.exists("myIRC.pdf"):
-         print("Warning: 'myIRC.pdf' not found. Document loading will fail.")
+    if not os.path.exists("1930.pdf"):
+         print("Warning: '1930.pdf' not found. Document loading will fail.")
          # You might want to handle this error more gracefully in a production app
     else:
-        loader = PyPDFLoader("myIRC.pdf")
-        docs = loader.load()
+        docs = [PyPDFLoader(url).load() for url in urls]
+        docs_list = [item for sublist in docs for item in sublist]
 
         # Split
         text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
             chunk_size=500, chunk_overlap=0
         )
-        doc_splits = text_splitter.split_documents(docs)
+        doc_splits = text_splitter.split_documents(docs_list)
 
         # Add to vectorstore
         # Using a persistent vectorstore for production might be better
