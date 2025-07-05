@@ -26,7 +26,7 @@ os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
 # --- RAG Setup (Initialize outside the request handler) ---
 @app.before_request
 def setup_rag():
-    global retriever, llm, prompt # Make these global so they can be accessed in the request handler
+    global retriever, llm, prompt, embd # Make these global so they can be accessed in the request handler
 
     # Set embeddings
     if not os.environ.get('OPENAI_API_KEY'):
