@@ -37,6 +37,7 @@ def setup_rag():
     urls = [
         "1930.pdf",
         "1946.pdf",
+        "0107queries.pdf",
     ]
 
     # Load document
