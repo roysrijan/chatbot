@@ -37,7 +37,6 @@ def setup_rag():
     urls = [
         "1930.pdf",
         "1946.pdf",
-        "0107queries.pdf",
     ]
 
     # Load document
@@ -83,25 +82,50 @@ def handle_query():
     if 'retriever' not in globals() or 'llm' not in globals() or 'prompt' not in globals():
          return jsonify({"error": "RAG components not initialized. Check setup."}), 500
 
-    # Chain
-    chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=retriever,
-        chain_type_kwargs={"prompt": prompt},
-        return_source_documents=True
-    )
+    q_docs = PyPDFLoader("0107queries.pdf").load()
 
-    try:
-        result = chain.invoke({"query": query})
-        formatted_sources = [
-            {"page_content": doc.page_content[:150], "metadata": doc.metadata}
-            for i, doc in enumerate(result.get('source_documents'), 1)
-        ]
+    # Add to vectorstore
+    db = Chroma.from_documents(
+        documents=q_docs,
+        collection_name="rag-chroma",
+        embedding=embd,
+    )
+    res = db.similarity_search_with_score(query, k=1)
+    context_text="\n\n-------\n\n".join([document[0].page_content for document in res])
+    start_index = context_text.find("Draft Reply")
+    if start_index != -1:
+        reply = context_text[start_index + len("Draft Reply"):].strip()
+        print(reply)
         return jsonify({
-            "answer": result.get('result'),
-            "sources": formatted_sources
+            "answer": reply,
+            "sources": {
+                "page_content": reply[:150],  # First 150 characters of the reply
+                "metadata": {
+                    "source": "0107queries.pdf",
+                }
+            }
         })
+    else:
+        print("Draft Reply not found in the text.")
+        # Chain
+        chain = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type="stuff",
+            retriever=retriever,
+            chain_type_kwargs={"prompt": prompt},
+            return_source_documents=True
+        )
+
+        try:
+            result = chain.invoke({"query": query})
+            formatted_sources = [
+                {"page_content": doc.page_content[:150], "metadata": doc.metadata}
+                for i, doc in enumerate(result.get('source_documents'), 1)
+            ]
+            return jsonify({
+                "answer": result.get('result'),
+                "sources": formatted_sources
+            })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
