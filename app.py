@@ -99,12 +99,12 @@ def handle_query():
             print(reply)
             return jsonify({
                 "answer": reply,
-                "sources": {
+                "sources": [{
                     "page_content": reply[:150],  # First 150 characters of the reply
                     "metadata": {
                         "source": "0107queries.pdf",
                     }
-                }
+                }]
             })
         else:
             print("Draft Reply not found in the text.")
