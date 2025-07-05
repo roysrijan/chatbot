@@ -82,6 +82,7 @@ def handle_query():
     if 'retriever' not in globals() or 'llm' not in globals() or 'prompt' not in globals():
          return jsonify({"error": "RAG components not initialized. Check setup."}), 500
 
+    try:
     q_docs = PyPDFLoader("0107queries.pdf").load()
 
     # Add to vectorstore
@@ -116,16 +117,15 @@ def handle_query():
             return_source_documents=True
         )
 
-        try:
-            result = chain.invoke({"query": query})
-            formatted_sources = [
-                {"page_content": doc.page_content[:150], "metadata": doc.metadata}
-                for i, doc in enumerate(result.get('source_documents'), 1)
-            ]
-            return jsonify({
-                "answer": result.get('result'),
-                "sources": formatted_sources
-            })
+        result = chain.invoke({"query": query})
+        formatted_sources = [
+            {"page_content": doc.page_content[:150], "metadata": doc.metadata}
+            for i, doc in enumerate(result.get('source_documents'), 1)
+        ]
+        return jsonify({
+            "answer": result.get('result'),
+            "sources": formatted_sources
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
