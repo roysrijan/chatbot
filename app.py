@@ -83,49 +83,49 @@ def handle_query():
          return jsonify({"error": "RAG components not initialized. Check setup."}), 500
 
     try:
-    q_docs = PyPDFLoader("0107queries.pdf").load()
+        q_docs = PyPDFLoader("0107queries.pdf").load()
 
-    # Add to vectorstore
-    db = Chroma.from_documents(
-        documents=q_docs,
-        collection_name="rag-chroma",
-        embedding=embd,
-    )
-    res = db.similarity_search_with_score(query, k=1)
-    context_text="\n\n-------\n\n".join([document[0].page_content for document in res])
-    start_index = context_text.find("Draft Reply")
-    if start_index != -1:
-        reply = context_text[start_index + len("Draft Reply"):].strip()
-        print(reply)
-        return jsonify({
-            "answer": reply,
-            "sources": {
-                "page_content": reply[:150],  # First 150 characters of the reply
-                "metadata": {
-                    "source": "0107queries.pdf",
-                }
-            }
-        })
-    else:
-        print("Draft Reply not found in the text.")
-        # Chain
-        chain = RetrievalQA.from_chain_type(
-            llm=llm,
-            chain_type="stuff",
-            retriever=retriever,
-            chain_type_kwargs={"prompt": prompt},
-            return_source_documents=True
+        # Add to vectorstore
+        db = Chroma.from_documents(
+            documents=q_docs,
+            collection_name="rag-chroma",
+            embedding=embd,
         )
+        res = db.similarity_search_with_score(query, k=1)
+        context_text="\n\n-------\n\n".join([document[0].page_content for document in res])
+        start_index = context_text.find("Draft Reply")
+        if start_index != -1:
+            reply = context_text[start_index + len("Draft Reply"):].strip()
+            print(reply)
+            return jsonify({
+                "answer": reply,
+                "sources": {
+                    "page_content": reply[:150],  # First 150 characters of the reply
+                    "metadata": {
+                        "source": "0107queries.pdf",
+                    }
+                }
+            })
+        else:
+            print("Draft Reply not found in the text.")
+            # Chain
+            chain = RetrievalQA.from_chain_type(
+                llm=llm,
+                chain_type="stuff",
+                retriever=retriever,
+                chain_type_kwargs={"prompt": prompt},
+                return_source_documents=True
+            )
 
-        result = chain.invoke({"query": query})
-        formatted_sources = [
-            {"page_content": doc.page_content[:150], "metadata": doc.metadata}
-            for i, doc in enumerate(result.get('source_documents'), 1)
-        ]
-        return jsonify({
-            "answer": result.get('result'),
-            "sources": formatted_sources
-        })
+            result = chain.invoke({"query": query})
+            formatted_sources = [
+                {"page_content": doc.page_content[:150], "metadata": doc.metadata}
+                for i, doc in enumerate(result.get('source_documents'), 1)
+            ]
+            return jsonify({
+                "answer": result.get('result'),
+                "sources": formatted_sources
+            })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
