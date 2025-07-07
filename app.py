@@ -83,11 +83,16 @@ def handle_query():
          return jsonify({"error": "RAG components not initialized. Check setup."}), 500
 
     try:
-        q_docs = PyPDFLoader("0107queries.pdf").load()
+        urls = [
+            "question1.pdf",
+            "question2.pdf"
+        ]
+        q_docs = [PyPDFLoader(url).load() for url in urls]
+        docs_list = [item for sublist in q_docs for item in sublist]
 
         # Add to vectorstore
         db = Chroma.from_documents(
-            documents=q_docs,
+            documents=docs_list,
             collection_name="rag-chroma",
             embedding=embd,
         )
