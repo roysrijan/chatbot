@@ -98,6 +98,7 @@ def handle_query():
         )
         res = db.similarity_search_with_score(query, k=1)
         context_text="\n\n-------\n\n".join([document[0].page_content for document in res])
+        source=([document[0].metadata['source'] for document in res])
         start_index = context_text.find("Draft Reply")
         if start_index != -1:
             reply = context_text[start_index + len("Draft Reply"):].strip()
@@ -107,7 +108,7 @@ def handle_query():
                 "sources": [{
                     "page_content": reply[:150],  # First 150 characters of the reply
                     "metadata": {
-                        "source": "0107queries.pdf",
+                        "source": source[0] if source else "Unknown Source",
                     }
                 }]
             })
