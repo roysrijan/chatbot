@@ -1,68 +1,14 @@
-from flask import Flask, request, jsonify
 import os
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader
-from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
-from langchain import hub
-from langchain_core.output_parsers import StrOutputParser
-from langchain_openai import ChatOpenAI
+from flask import Flask, request, jsonify
 from langchain.chains import RetrievalQA
 from flask_cors import CORS
+from rag_service import llm, retriever, prompt
 
 # --- Flask App ---
 app = Flask(__name__)
 
 # --- Enable CORS --
 CORS(app)
-
-# --- Environment Variables ---
-# Ensure these are set in your deployment environment
-os.environ['LANGSMITH_TRACING'] = os.getenv('LANGSMITH_TRACING', 'false') # Set to true for tracing
-os.environ['LANGSMITH_ENDPOINT'] = os.getenv('LANGSMITH_ENDPOINT', 'https://api.smith.langchain.com')
-os.environ['LANGSMITH_API_KEY'] = os.getenv('LANGSMITH_API_KEY')
-os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY')
-
-# --- RAG Setup (Initialize outside the request handler) ---
-@app.before_request
-def setup_rag():
-    global retriever, llm, prompt # Make these global so they can be accessed in the request handler
-
-    # Set embeddings
-    if not os.environ.get('OPENAI_API_KEY'):
-        print("Warning: OPENAI_API_KEY not set. Embeddings may fail.")
-    embd = OpenAIEmbeddings()
-
-    # Load document
-    # Assuming 'myIRC.pdf' is available in the same directory as app.py
-    if not os.path.exists("myIRC.pdf"):
-         print("Warning: 'myIRC.pdf' not found. Document loading will fail.")
-         # You might want to handle this error more gracefully in a production app
-    else:
-        loader = PyPDFLoader("myIRC.pdf")
-        docs = loader.load()
-
-        # Split
-        text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
-            chunk_size=500, chunk_overlap=0
-        )
-        doc_splits = text_splitter.split_documents(docs)
-
-        # Add to vectorstore
-        # Using a persistent vectorstore for production might be better
-        # For this example, it's in-memory within the application's lifecycle
-        vectorstore = Chroma.from_documents(
-            documents=doc_splits,
-            collection_name="rag-chroma",
-            embedding=embd,
-        )
-        retriever = vectorstore.as_retriever()
-
-    # Prompt
-    prompt = hub.pull("rlm/rag-prompt")
-
-    # LLM
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 
 # --- API Endpoint ---
 @app.route('/query', methods=['POST'])
@@ -117,4 +63,4 @@ if __name__ == '__main__':
         print("!!! Place 'myIRC.pdf' in the 'rag_api' directory.     !!!")
         print("="*50 + "\n")
 
-    app.run(host='0.0.0.0', port=8080) # Use 0.0.0.0 to be accessible within the container
+    app.run(host='0.0.0.0', port=80) # Use 0.0.0.0 to be accessible within the container
