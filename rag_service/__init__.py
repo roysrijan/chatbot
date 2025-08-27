@@ -1,1 +1,2 @@
-from .loader import retriever, llm, prompt
+# from .loader import retriever, llm, prompt
+from .agent import agent

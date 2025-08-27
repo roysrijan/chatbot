@@ -7,3 +7,9 @@ chromadb
 pypdf
 langchain
 langchain-core
+langgraph
+langgraph-supervisor
+langchain-tavily
+langchain_chroma
+unstructured
+msoffcrypto-tool
